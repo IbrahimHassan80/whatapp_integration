@@ -5,7 +5,7 @@ use App\helper\Twilio;
 use App\Models\Message;
 use Illuminate\Http\Request;
 use Twilio\Rest\Client;
-
+use DB;
 class whatscontroller extends Controller
 {
     public function whatsappindex(){
@@ -14,16 +14,21 @@ class whatscontroller extends Controller
     }
     
     public function messageSendToMobile(Request $request){
+        try {
+        DB::beginTransaction();
         Message::create($request->all());
-        $from = '+14155238886'; 
+        
+        $from = '+141552388866'; 
         $to   = '+201278552735';
         $body = $request->message;
         $twilio = new Twilio;
-        try {
+      
               $twilio->sendWhatsAppSMS($from, $to, $body);
+              DB::commit();
               return back()->with(['success' => 'Message Done']);
         } catch (\Throwable $th) {
-              return dd($th);
+             DB::rollback();
+             return dd($th);
         }
     }
 
